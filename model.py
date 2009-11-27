@@ -1,4 +1,5 @@
 import datetime
+import plot
 
 class Model :
 	def __init__(self) :
@@ -55,6 +56,18 @@ class Model :
 				schedule.run(today)
 		
 		return dates, graphableLines
+
+	def plotMetricsOnceOverPeriod(self, metrics, days, startdate=datetime.datetime.today()) :
+		dates, lines = self.evaluateMetricsOverPeriod(metrics, startdate, days)
+		linelist = [
+			(lines['Net Worth'], 'g-'),
+			(lines['Net Assets'], 'b-'),
+			(lines['Net Liabilities'], 'r-'),
+		]
+
+		plot.plot(dates, linelist)
+
+		return lines['Net Worth'].pop()
 
 class Metric :
 	pass
