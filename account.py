@@ -1,7 +1,6 @@
 import math
 
 # flux
-
 class Income :
 	def __init__(self, dest, amount) :
 		dest.give(amount)
@@ -22,7 +21,6 @@ class Transfer :
 		dest.give(amount)
 
 # state
-
 class Account :
 	def __init__(self, name, balance) :
 		self.name = name

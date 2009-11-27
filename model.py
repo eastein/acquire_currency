@@ -78,8 +78,8 @@ class Model :
 			dates, lines = model_instance.evaluateMetricsOverPeriod(metrics, startdate, days)
 			sampleset.append(lines)
 		
-		PERCENTILES = [10, 50, 90]
-		PERCENTILE_DASH = [1]
+		PERCENTILES = [10,25,50,75,90]
+		PERCENTILE_DASH = [2]
 		
 		percentile_indexes = []
 		for p in PERCENTILES :
