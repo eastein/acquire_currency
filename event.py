@@ -111,5 +111,8 @@ class Daily(Schedule) :
 		return True
 
 class Monthly(Schedule) :
+	def __init__(self, day_of_month=1) :
+		Schedule.__init__(self)
+		self.day_of_month = day_of_month
 	def condition(self, dt) :
-		return dt.day == 1
+		return dt.day == self.day_of_month
