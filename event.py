@@ -29,6 +29,7 @@ class Payment(Event) :
 	def trigger(self) :
 		account.Transfer(self.source, self.dest, self.amount)
 
+# loan stuff
 class MinimumPayment(Event) :
 	def __init__(self, source, loan) :
 		self.source = source
@@ -43,6 +44,31 @@ class ChargeInterest(Event) :
 
 	def trigger(self) :
 		self.loan.chargeInterest()
+
+class ScheduleEvent(Event) :
+	def __init__(self, schedule, event) :
+		self.schedule = schedule
+		sel.event = event
+
+	def trigger(self) :
+		self.schedule.schedule(event)
+
+class UnscheduleEvent(Event) :
+	def __init__(self, schedule, event) :
+		self.schedule = schedule
+		sel.event = event
+
+	def trigger(self) :
+		self.schedule.unschedule(event)
+
+class ProbabalisticEvent(Event) :
+	def __init__(self, event, probability) :
+		self.event = event
+		self.probability = probability
+
+	def trigger(self) :
+		if random.random() < self.probability :
+			self.event.trigger()
 
 class Schedule :
 	def __init__(self) :
