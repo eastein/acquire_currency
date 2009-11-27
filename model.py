@@ -69,6 +69,11 @@ class Model :
 
 		return lines['Net Worth'].pop()
 
+
+	@classmethod
+	def plotMetricsOverPeriod(cls, model_module, metrics, days, startdate=datetime.datetime.today()) :
+		PERCENTILES = [2, 10, 25, 50, 25, 90, 98]
+
 	@classmethod
 	def createModel(cls, model_module, **kwargs) :
 		return model_module.createModel(**kwargs)
@@ -106,12 +111,18 @@ class InDebt(Metric) :
 
 if __name__ == '__main__' :
 	import sys
-	if len(sys.argv) != 2 :
+	if len(sys.argv) < 2 :
 		print 'usage: model.py modelmodule'
 		sys.exit(1)
 
-	mymodel = Model.createModel(__import__(sys.argv[1]))
+	model_module = __import__(sys.argv[1])
 
 	metrics = [NetAssets(), NetLiabilities(), NetWorth()]
 
-	print mymodel.plotMetricsOnceOverPeriod(metrics, days=365*2)
+	if len(sys.argv) == 2 :
+		mymodel = Model.createModel(model_module)
+		print mymodel.plotMetricsOnceOverPeriod(metrics, days=365*2)
+	elif len(sys.argv) == 4 and sys.argv[2] == '-samples' :
+		times = int(sys.argv[3])
+		Model.plotMetricsOverPeriod(model_module, metrics, days=365*2)
+
