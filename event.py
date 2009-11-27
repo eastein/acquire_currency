@@ -1,3 +1,4 @@
+import random
 import account
 
 class Event :
@@ -48,18 +49,18 @@ class ChargeInterest(Event) :
 class ScheduleEvent(Event) :
 	def __init__(self, schedule, event) :
 		self.schedule = schedule
-		sel.event = event
+		self.event = event
 
 	def trigger(self) :
-		self.schedule.schedule(event)
+		self.schedule.schedule(self.event)
 
 class UnscheduleEvent(Event) :
 	def __init__(self, schedule, event) :
 		self.schedule = schedule
-		sel.event = event
+		self.event = event
 
 	def trigger(self) :
-		self.schedule.unschedule(event)
+		self.schedule.unschedule(self.event)
 
 class ProbabalisticEvent(Event) :
 	def __init__(self, event, probability) :
