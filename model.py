@@ -71,8 +71,52 @@ class Model :
 
 
 	@classmethod
-	def plotMetricsOverPeriod(cls, model_module, metrics, days, startdate=datetime.datetime.today()) :
-		PERCENTILES = [2, 10, 25, 50, 25, 90, 98]
+	def plotAggregateMetricsOverPeriod(cls, model_module, metrics, samples, days, startdate=datetime.datetime.today()) :
+		sampleset = []
+		for i in range(samples) :
+			model_instance = Model.createModel(model_module)
+			dates, lines = model_instance.evaluateMetricsOverPeriod(metrics, startdate, days)
+			sampleset.append(lines)
+		
+		PERCENTILES = [10, 50, 90]
+		PERCENTILE_DASH = [1]
+		
+		percentile_indexes = []
+		for p in PERCENTILES :
+			percentile_indexes.append(int(samples * float(p) / 100.0))
+
+		METRICS_TO_COLOR = {
+			'Net Worth' : 'g',
+			'Net Assets' : 'b',
+			'Net Liabilities' : 'r'
+		}
+		
+		graph_lines = []
+		for metric_name in METRICS_TO_COLOR :
+			percentile_datalines = [[]]*len(PERCENTILES)
+			for d_idx in range(days) :
+				values_for_metric = []
+				for run_idx in range(samples) :
+					values_for_metric.append(sampleset[run_idx][metric_name][d_idx])
+
+				percs = []
+				values_for_metric.sort()
+				for percentile_idx_idx in range(len(percentile_indexes)) :
+					percentile_idx = percentile_indexes[percentile_idx_idx]
+					percentile_value = values_for_metric[percentile_idx]
+					percentile_datalines[percentile_idx_idx].append(percentile_value)
+
+					percs.append(percentile_value)
+
+				print 'percentiles for metric: %s' % str(percs)
+
+			for percentile_idx_idx in range(len(PERCENTILES)) :
+				format = ''
+				if percentile_idx_idx in PERCENTILE_DASH :
+					format = '-'
+				graph_lines.append((percentile_datalines[percentile_idx_idx], METRICS_TO_COLOR[metric_name] + format))
+		print len(graph_lines)
+		plot.plot(dates, graph_lines)			
 
 	@classmethod
 	def createModel(cls, model_module, **kwargs) :
@@ -123,6 +167,5 @@ if __name__ == '__main__' :
 		mymodel = Model.createModel(model_module)
 		print mymodel.plotMetricsOnceOverPeriod(metrics, days=365*2)
 	elif len(sys.argv) == 4 and sys.argv[2] == '-samples' :
-		times = int(sys.argv[3])
-		Model.plotMetricsOverPeriod(model_module, metrics, days=365*2)
-
+		samples = int(sys.argv[3])
+		Model.plotAggregateMetricsOverPeriod(model_module, metrics, samples, days=365*2)
