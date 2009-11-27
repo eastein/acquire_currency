@@ -44,39 +44,6 @@ class ChargeInterest(Event) :
 	def trigger(self) :
 		self.loan.chargeInterest()
 
-def compare_interest(l1, l2) :
-	if l1.interest > l2.interest :
-		return 1
-	elif l1.interest == l2.interest :
-		return 0
-	else :
-		return -1
-
-class Strategy(Event) :
-	pass
-
-class BringCashToMinimum(Strategy) :
-	def __init__(self, model, cash, boundary) :
-		self.model = model
-		self.cash = cash
-		self.boundary = boundary
-
-	def trigger(self) :
-		spareCash = self.model.netAssets() - self.boundary
-
-		while spareCash > 0.0 :
-			# select the highest interest rate liability with any remaining balance.
-			due = filter(lambda l: l.balance > 0.0, self.model.liabilities.values())
-			if due :
-				due.sort(cmp=compare_interest)
-				highest = due.pop()
-			
-				transfer = min(spareCash, highest.balance)
-				account.Transfer(self.cash, highest, transfer, 'paying extra to pay down debt')
-				spareCash = self.model.netAssets() - self.boundary
-			else :
-				break
-
 class Schedule :
 	def __init__(self) :
 		self.events = []
@@ -114,5 +81,6 @@ class Monthly(Schedule) :
 	def __init__(self, day_of_month=1) :
 		Schedule.__init__(self)
 		self.day_of_month = day_of_month
+
 	def condition(self, dt) :
 		return dt.day == self.day_of_month
