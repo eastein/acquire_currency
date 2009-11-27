@@ -52,7 +52,10 @@ def compare_interest(l1, l2) :
 	else :
 		return -1
 
-class BringCashToMinimum(Event) :
+class Strategy(Event) :
+	pass
+
+class BringCashToMinimum(Strategy) :
 	def __init__(self, model, cash, boundary) :
 		self.model = model
 		self.cash = cash
