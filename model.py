@@ -69,6 +69,10 @@ class Model :
 
 		return lines['Net Worth'].pop()
 
+	@classmethod
+	def createModel(cls, model_module, **kwargs) :
+		return model_module.createModel(**kwargs)
+
 class Metric :
 	pass
 
@@ -99,3 +103,15 @@ class InDebt(Metric) :
 
 	def evaluate(self, m) :
 		return m.netLiabilities() > 0.0
+
+if __name__ == '__main__' :
+	import sys
+	if len(sys.argv) != 2 :
+		print 'usage: model.py modelmodule'
+		sys.exit(1)
+
+	mymodel = Model.createModel(__import__(sys.argv[1]))
+
+	metrics = [NetAssets(), NetLiabilities(), NetWorth()]
+
+	print mymodel.plotMetricsOnceOverPeriod(metrics, days=365*2)
