@@ -1,171 +1,181 @@
 import datetime
 import plot
 
-class Model :
-	def __init__(self) :
-		self.assets = {}
-		self.liabilities = {}
-		self.schedules = []
 
-	def addAsset(self, account) :
-		self.assets[account.name] = account
+class Model:
 
-	def addLiability(self, account) :
-		self.liabilities[account.name] = account
+    def __init__(self):
+        self.assets = {}
+        self.liabilities = {}
+        self.schedules = []
 
-	def addSchedule(self, schedule) :
-		if schedule not in self.schedules :
-			self.schedules.append(schedule)
+    def addAsset(self, account):
+        self.assets[account.name] = account
 
-	# calculate state
-	def netAssets(self) :
-		netassets = 0.0
-		for asset in self.assets.values() :
-			netassets += asset.balance
-		return netassets
+    def addLiability(self, account):
+        self.liabilities[account.name] = account
 
-	def netLiabilities(self) :
-		netliabilities = 0.0
-		for liability in self.liabilities.values() :
-			netliabilities += liability.balance
-		return netliabilities
+    def addSchedule(self, schedule):
+        if schedule not in self.schedules:
+            self.schedules.append(schedule)
 
-	def netWorth(self) :
-		return self.netAssets() - self.netLiabilities()
+    # calculate state
+    def netAssets(self):
+        netassets = 0.0
+        for asset in self.assets.values():
+            netassets += asset.balance
+        return netassets
 
-	def evaluateMetricsOverPeriod(self, metricList, startdate, days) :
-		graphableLines = {}
-		for metric in metricList :
-			graphableLines[metric.name] = []
+    def netLiabilities(self):
+        netliabilities = 0.0
+        for liability in self.liabilities.values():
+            netliabilities += liability.balance
+        return netliabilities
 
-		dates = []
+    def netWorth(self):
+        return self.netAssets() - self.netLiabilities()
 
-		for i in range(days) :
-			today = startdate + datetime.timedelta(i)
-			dates.append(today.date())
+    def evaluateMetricsOverPeriod(self, metricList, startdate, days):
+        graphableLines = {}
+        for metric in metricList:
+            graphableLines[metric.name] = []
 
-			# evaluate metrics
-			todaysdata = {}
-			for metric in metricList :
-				data = metric.evaluate(self)
-				todaysdata[metric.name] = data
-				graphableLines[metric.name].append(data)
+        dates = []
 
-			# determine today's date to iterate
-			for schedule in self.schedules :
-				schedule.run(today)
-		
-		return dates, graphableLines
+        for i in range(days):
+            today = startdate + datetime.timedelta(i)
+            dates.append(today.date())
 
-	def plotMetricsOnceOverPeriod(self, metrics, days, startdate=datetime.datetime.today()) :
-		dates, lines = self.evaluateMetricsOverPeriod(metrics, startdate, days)
-		linelist = [
-			(lines['Net Worth'], 'g-'),
-			(lines['Net Assets'], 'b-'),
-			(lines['Net Liabilities'], 'r-'),
-		]
+            # evaluate metrics
+            todaysdata = {}
+            for metric in metricList:
+                data = metric.evaluate(self)
+                todaysdata[metric.name] = data
+                graphableLines[metric.name].append(data)
 
-		plot.plot(dates, linelist)
+            # determine today's date to iterate
+            for schedule in self.schedules:
+                schedule.run(today)
 
-		return lines['Net Worth'].pop()
+        return dates, graphableLines
+
+    def plotMetricsOnceOverPeriod(self, metrics, days, startdate=datetime.datetime.today()):
+        dates, lines = self.evaluateMetricsOverPeriod(metrics, startdate, days)
+        linelist = [
+            (lines['Net Worth'], 'g-'),
+            (lines['Net Assets'], 'b-'),
+            (lines['Net Liabilities'], 'r-'),
+        ]
+
+        plot.plot(dates, linelist)
+
+        return lines['Net Worth'].pop()
+
+    @classmethod
+    def plotAggregateMetricsOverPeriod(cls, model_module, metrics, samples, days, startdate=datetime.datetime.today()):
+        sampleset = []
+        for i in range(samples):
+            model_instance = Model.createModel(model_module)
+            dates, lines = model_instance.evaluateMetricsOverPeriod(metrics, startdate, days)
+            sampleset.append(lines)
+
+        PERCENTILES = [10, 25, 50, 75, 90]
+        PERCENTILE_DASH = [2]
+
+        percentile_indexes = []
+        for p in PERCENTILES:
+            percentile_indexes.append(int(samples * float(p) / 100.0))
+
+        METRICS_TO_COLOR = {
+            'Net Worth': 'g',
+            'Net Assets': 'b',
+            'Net Liabilities': 'r'
+        }
+
+        graph_lines = []
+        for metric_name in METRICS_TO_COLOR:
+            percentile_datalines = [[]] * len(PERCENTILES)
+            for d_idx in range(days):
+                values_for_metric = []
+                for run_idx in range(samples):
+                    values_for_metric.append(sampleset[run_idx][metric_name][d_idx])
+
+                percs = []
+                values_for_metric.sort()
+                for percentile_idx_idx in range(len(percentile_indexes)):
+                    percentile_idx = percentile_indexes[percentile_idx_idx]
+                    percentile_value = values_for_metric[percentile_idx]
+                    percentile_datalines[percentile_idx_idx].append(percentile_value)
+
+                    percs.append(percentile_value)
+
+                print 'percentiles for metric: %s' % str(percs)
+
+            for percentile_idx_idx in range(len(PERCENTILES)):
+                format = ''
+                if percentile_idx_idx in PERCENTILE_DASH:
+                    format = '-'
+                graph_lines.append((percentile_datalines[percentile_idx_idx], METRICS_TO_COLOR[metric_name] + format))
+        print len(graph_lines)
+        plot.plot(dates, graph_lines)
+
+    @classmethod
+    def createModel(cls, model_module, **kwargs):
+        return model_module.createModel(**kwargs)
 
 
-	@classmethod
-	def plotAggregateMetricsOverPeriod(cls, model_module, metrics, samples, days, startdate=datetime.datetime.today()) :
-		sampleset = []
-		for i in range(samples) :
-			model_instance = Model.createModel(model_module)
-			dates, lines = model_instance.evaluateMetricsOverPeriod(metrics, startdate, days)
-			sampleset.append(lines)
-		
-		PERCENTILES = [10,25,50,75,90]
-		PERCENTILE_DASH = [2]
-		
-		percentile_indexes = []
-		for p in PERCENTILES :
-			percentile_indexes.append(int(samples * float(p) / 100.0))
+class Metric:
+    pass
 
-		METRICS_TO_COLOR = {
-			'Net Worth' : 'g',
-			'Net Assets' : 'b',
-			'Net Liabilities' : 'r'
-		}
-		
-		graph_lines = []
-		for metric_name in METRICS_TO_COLOR :
-			percentile_datalines = [[]]*len(PERCENTILES)
-			for d_idx in range(days) :
-				values_for_metric = []
-				for run_idx in range(samples) :
-					values_for_metric.append(sampleset[run_idx][metric_name][d_idx])
 
-				percs = []
-				values_for_metric.sort()
-				for percentile_idx_idx in range(len(percentile_indexes)) :
-					percentile_idx = percentile_indexes[percentile_idx_idx]
-					percentile_value = values_for_metric[percentile_idx]
-					percentile_datalines[percentile_idx_idx].append(percentile_value)
+class NetWorth(Metric):
 
-					percs.append(percentile_value)
+    def __init__(self):
+        self.name = 'Net Worth'
 
-				print 'percentiles for metric: %s' % str(percs)
+    def evaluate(self, m):
+        return m.netWorth()
 
-			for percentile_idx_idx in range(len(PERCENTILES)) :
-				format = ''
-				if percentile_idx_idx in PERCENTILE_DASH :
-					format = '-'
-				graph_lines.append((percentile_datalines[percentile_idx_idx], METRICS_TO_COLOR[metric_name] + format))
-		print len(graph_lines)
-		plot.plot(dates, graph_lines)			
 
-	@classmethod
-	def createModel(cls, model_module, **kwargs) :
-		return model_module.createModel(**kwargs)
+class NetAssets(Metric):
 
-class Metric :
-	pass
+    def __init__(self):
+        self.name = 'Net Assets'
 
-class NetWorth(Metric) :
-	def __init__(self) :
-		self.name = 'Net Worth'
+    def evaluate(self, m):
+        return m.netAssets()
 
-	def evaluate(self, m) :
-		return m.netWorth()
 
-class NetAssets(Metric) :
-	def __init__(self) :
-		self.name = 'Net Assets'
+class NetLiabilities(Metric):
 
-	def evaluate(self, m) :
-		return m.netAssets()
+    def __init__(self):
+        self.name = 'Net Liabilities'
 
-class NetLiabilities(Metric) :
-	def __init__(self) :
-		self.name = 'Net Liabilities'
+    def evaluate(self, m):
+        return m.netLiabilities()
 
-	def evaluate(self, m) :
-		return m.netLiabilities()
 
-class InDebt(Metric) :
-	def __init__(self) :
-		self.name = 'In Debt'
+class InDebt(Metric):
 
-	def evaluate(self, m) :
-		return m.netLiabilities() > 0.0
+    def __init__(self):
+        self.name = 'In Debt'
 
-if __name__ == '__main__' :
-	import sys
-	if len(sys.argv) < 2 :
-		print 'usage: model.py modelmodule'
-		sys.exit(1)
+    def evaluate(self, m):
+        return m.netLiabilities() > 0.0
 
-	model_module = __import__(sys.argv[1])
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) < 2:
+        print 'usage: model.py modelmodule'
+        sys.exit(1)
 
-	metrics = [NetAssets(), NetLiabilities(), NetWorth()]
+    model_module = __import__(sys.argv[1])
 
-	if len(sys.argv) == 2 :
-		mymodel = Model.createModel(model_module)
-		print mymodel.plotMetricsOnceOverPeriod(metrics, days=365*2)
-	elif len(sys.argv) == 4 and sys.argv[2] == '-samples' :
-		samples = int(sys.argv[3])
-		Model.plotAggregateMetricsOverPeriod(model_module, metrics, samples, days=365*2)
+    metrics = [NetAssets(), NetLiabilities(), NetWorth()]
+
+    if len(sys.argv) == 2:
+        mymodel = Model.createModel(model_module)
+        print mymodel.plotMetricsOnceOverPeriod(metrics, days=365 * 2)
+    elif len(sys.argv) == 4 and sys.argv[2] == '-samples':
+        samples = int(sys.argv[3])
+        Model.plotAggregateMetricsOverPeriod(model_module, metrics, samples, days=365 * 2)

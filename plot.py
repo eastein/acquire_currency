@@ -13,7 +13,9 @@ from matplotlib.mlab import csv2rec
 from pylab import figure, show
 from matplotlib.ticker import Formatter
 
+
 class MyFormatter(Formatter):
+
     def __init__(self, dates, fmt='%Y-%m-%d'):
         self.dates = dates
         self.fmt = fmt
@@ -21,18 +23,19 @@ class MyFormatter(Formatter):
     def __call__(self, x, pos=0):
         'Return the label for time x at position pos'
         ind = int(round(x))
-        if ind>=len(self.dates) or ind<0: return ''
+        if ind >= len(self.dates) or ind < 0:
+            return ''
 
         return self.dates[ind].strftime(self.fmt)
 
 
-def plot(dates, linelist) :
-	formatter = MyFormatter(dates)
+def plot(dates, linelist):
+    formatter = MyFormatter(dates)
 
-	fig = figure()
-	ax = fig.add_subplot(111)
-	ax.xaxis.set_major_formatter(formatter)
-	for data, colorcode in linelist :
-		ax.plot(range(len(data)), data, colorcode)
-	fig.autofmt_xdate()
-	show()
+    fig = figure()
+    ax = fig.add_subplot(111)
+    ax.xaxis.set_major_formatter(formatter)
+    for data, colorcode in linelist:
+        ax.plot(range(len(data)), data, colorcode)
+    fig.autofmt_xdate()
+    show()
