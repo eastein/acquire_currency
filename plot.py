@@ -8,11 +8,10 @@ to simply use the integer index for the xdata and a custom tick
 Formatter to get the appropriate date string for a given index.
 """
 
-import numpy
-from matplotlib.mlab import csv2rec
-from pylab import figure, show
+import matplotlib.pyplot as plt
 from matplotlib.ticker import Formatter
-
+import matplotlib.rcsetup
+import matplotlib
 
 class MyFormatter(Formatter):
 
@@ -29,13 +28,16 @@ class MyFormatter(Formatter):
         return self.dates[ind].strftime(self.fmt)
 
 
-def plot(dates, linelist):
+def plot(dates, linelist, backend=None):
     formatter = MyFormatter(dates)
 
-    fig = figure()
-    ax = fig.add_subplot(111)
+    fig, ax = plt.subplots()
     ax.xaxis.set_major_formatter(formatter)
     for data, colorcode in linelist:
         ax.plot(range(len(data)), data, colorcode)
     fig.autofmt_xdate()
-    show()
+
+    for backend in matplotlib.rcsetup.all_backends:
+        matplotlib.rcParams['backend'] = backend
+        print 'trying to show with %s' % backend
+        print 'plt.show(%s) = %s' % (backend, plt.show())

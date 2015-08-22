@@ -23,7 +23,7 @@ class Transfer:
         self.dest = dest
         self.name = name
 
-        # print 'transferring $%0.2f from %s to %s' % (amount, source.name, dest.name)
+        print 'transferring $%0.2f from %s to %s: %s' % (amount, source.name, dest.name, name)
         source.take(amount)
         dest.give(amount)
 
