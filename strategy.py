@@ -18,9 +18,9 @@ class BringCashToMinimum(Strategy):
 
         while spareCash > 0.0:
             # select the highest interest rate liability with any remaining balance.
-            due = filter(lambda l: l.balance > 0.0, self.model.liabilities.values())
+            due = list(filter(lambda l: l.balance > 0.0, self.model.liabilities.values()))
             if due:
-                due.sort(cmp=account.Loan.compare_interest)
+                due.sort(key=lambda l: l.interest)
                 highest = due.pop()
 
                 transfer = min(spareCash, highest.balance)

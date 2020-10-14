@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import Formatter
 import matplotlib.rcsetup
 import matplotlib
+matplotlib.use('tkagg')
 
 class MyFormatter(Formatter):
 
@@ -39,5 +40,5 @@ def plot(dates, linelist, backend=None):
 
     for backend in matplotlib.rcsetup.all_backends:
         matplotlib.rcParams['backend'] = backend
-        print 'trying to show with %s' % backend
-        print 'plt.show(%s) = %s' % (backend, plt.show())
+        print('trying to show with %s' % backend)
+        print('plt.show(%s) = %s' % (backend, plt.show()))

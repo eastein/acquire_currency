@@ -23,7 +23,7 @@ class Transfer:
         self.dest = dest
         self.name = name
 
-        print 'transferring $%0.2f from %s to %s: %s' % (amount, source.name, dest.name, name)
+        print('transferring $%0.2f from %s to %s: %s' % (amount, source.name, dest.name, name))
         source.take(amount)
         dest.give(amount)
 
@@ -87,12 +87,3 @@ class Loan(Liability):
         Liability.__init__(self, name, balance)
         self.interest = interest
         self.minimum_payment = minimum_payment
-
-    @classmethod
-    def compare_interest(cls, l1, l2):
-        if l1.interest > l2.interest:
-            return 1
-        elif l1.interest == l2.interest:
-            return 0
-        else:
-            return -1

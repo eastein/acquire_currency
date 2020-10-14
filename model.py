@@ -1,3 +1,4 @@
+import pprint
 import datetime
 import plot
 
@@ -67,6 +68,13 @@ class Model:
             (lines['Net Liabilities'], 'r-'),
         ]
 
+        """
+        pprint.pprint({
+            'dates': dates,
+            'lines': lines,
+        })
+        """
+
         plot.plot(dates, linelist)
 
         return lines['Net Worth'].pop()
@@ -109,14 +117,20 @@ class Model:
 
                     percs.append(percentile_value)
 
-                print 'percentiles for metric: %s' % str(percs)
+                print('percentiles for metric: %s' % str(percs))
 
             for percentile_idx_idx in range(len(PERCENTILES)):
                 format = ''
                 if percentile_idx_idx in PERCENTILE_DASH:
                     format = '-'
                 graph_lines.append((percentile_datalines[percentile_idx_idx], METRICS_TO_COLOR[metric_name] + format))
-        print len(graph_lines)
+        print(len(graph_lines))
+
+        pprint.pprint({
+            'dates': dates,
+            'graph_lines': graph_lines
+        })
+
         plot.plot(dates, graph_lines)
 
     @classmethod
@@ -166,7 +180,7 @@ class InDebt(Metric):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) < 2:
-        print 'usage: model.py modelmodule'
+        print('usage: model.py modelmodule')
         sys.exit(1)
 
     model_module = __import__(sys.argv[1])
@@ -175,7 +189,7 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 2:
         mymodel = Model.createModel(model_module)
-        print mymodel.plotMetricsOnceOverPeriod(metrics, days=365 * 2)
+        print(mymodel.plotMetricsOnceOverPeriod(metrics, days=365 * 3))
     elif len(sys.argv) == 4 and sys.argv[2] == '-samples':
         samples = int(sys.argv[3])
         Model.plotAggregateMetricsOverPeriod(model_module, metrics, samples, days=365 * 2)
